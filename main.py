@@ -94,17 +94,17 @@ def construct_M(N_x, N_y, circular=False):
 def solve_eigen_problem(L, N_x, N_y, circular=False, sparse=True, k=6):
 
     M = construct_M(N_x, N_y, circular=circular)
-    M = M / (L /N_x**2)   # apply division by dx^2
+    M = -M / (L /N_x**2)   # apply division by dx^2
 
     print("Solving eigenvalues...")
 
     if sparse:
         eig_vals, eig_vecs = sp_lin_sparse.eigs(M, k)
     else:
-        Ks, vs = sp_lin.eig(M)
+        eig_vals, eig_vecs = sp_lin.eigh(M)
 
     eig_vals = eig_vals.real
-    eig_vecs = eig_vecs.real.T
+    eig_vecs = eig_vecs.T
 
     print("Eigenvalues found...\n")
 
@@ -121,56 +121,54 @@ def main():
     time_start = time.time()
 
     L = 1
-    N = 60
+    N = 30
 
     N_x = N * L
     N_y = N * L
 
-    eig_vals_square, eig_vecs_square = solve_eigen_problem(L, N*L, N*L, k=2)
-    # eig_vals_rect, eig_vecs_rect = solve_eigen_problem(L, N*L, N*2*L, k=2)
-    # eig_vals_circle, eig_vecs_circle = solve_eigen_problem(L, N*L, N*L, circular=True, k=2)
+    eig_vals_square, eig_vecs_square = solve_eigen_problem(L, N*L, N*L, sparse=False, k=2)
+    eig_vals_rect, eig_vecs_rect = solve_eigen_problem(L, N*L, N*2*L, sparse=False, k=2)
+
+    # circle doesn't properly work
+    eig_vals_circle, eig_vecs_circle = solve_eigen_problem(L, N*L, N*L, sparse=False, circular=True, k=2)
 
     print("Total time: {:.2f} seconds".format(time.time()-time_start))
 
-    u = eig_vecs_square[0].reshape((N*L, N*L)).T
-    labda = np.sqrt(-eig_vals_square[0])
-    fig, ax = plt.subplots()
-    plt.xlabel("x")
-    plt.ylabel("y")
-    u_t = u * time_func(0, labda)
-    im = ax.matshow(u_t, origin="lower")
-    fig.colorbar(im)
+    # u = eig_vecs_square[0].reshape((N*L, N*L)).T
+    # labda = np.sqrt(eig_vals_square[0])
+    # fig, ax = plt.subplots()
+    # plt.xlabel("x")
+    # plt.ylabel("y")
+    # u_t = u * time_func(0, labda)
+    # ax.matshow(u_t, origin="lower")
+    #
+    # for t in np.arange(0, 0.5*np.pi, 0.01):
+    #     u_t = u * time_func(t, labda)
+    #     plt.cla()
+    #     ax.matshow(u_t, origin="lower")
+    #     plt.title("$t = {:.2f}$ seconds".format(t))
+    #     plt.pause(0.001)
 
-    for t in np.arange(0, 2*np.pi, 0.1):
-        # print(time_func(t, labda))
-        u_t = u * time_func(t, labda)
-        plt.cla()
-        im = ax.matshow(u_t, origin="lower")
-        plt.pause(1)
-        # plt.title("Square drum: t = {}".format(t))
-
-    plt.show()
-    return
-    for i, eig_vec in enumerate(eig_vecs_square):
+    for i, eig_vec in enumerate(eig_vecs_square[:2]):
         plt.matshow(eig_vec.reshape((N*L, N*L)).T, origin="lower")
         plt.title("Square drum: eigenvalue {:.0f}".format(eig_vals_square[i]))
         plt.xlabel("x")
         plt.ylabel("y")
         plt.colorbar()
 
-    # for i, eig_vec in enumerate(eig_vecs_rect):
-    #     plt.matshow(eig_vec.reshape(N*L, N*2*L).T, origin="lower")
-    #     plt.title("Rectangular drum: eigenvalue {:.0f}".format(eig_vals_rect[i]))
-    #     plt.xlabel("x")
-    #     plt.ylabel("y")
-    #     plt.colorbar()
+    for i, eig_vec in enumerate(eig_vecs_rect[:2]):
+        plt.matshow(eig_vec.reshape(N*L, N*2*L).T, origin="lower")
+        plt.title("Rectangular drum: eigenvalue {:.0f}".format(eig_vals_rect[i]))
+        plt.xlabel("x")
+        plt.ylabel("y")
+        plt.colorbar()
 
-    # for i, eig_vec in enumerate(eig_vecs_circle):
-    #     plt.matshow(eig_vec.reshape(N*L, N*L).T, origin="lower")
-    #     plt.title("Circular drum: eigenvalue {:.0f}".format(eig_vals_circle[i]))
-    #     plt.xlabel("x")
-    #     plt.ylabel("y")
-    #     plt.colorbar()
+    for i, eig_vec in enumerate(eig_vecs_circle[:2]):
+        plt.matshow(eig_vec.reshape(N*L, N*L).T, origin="lower")
+        plt.title("Circular drum: eigenvalue {:.0f}".format(eig_vals_circle[i]))
+        plt.xlabel("x")
+        plt.ylabel("y")
+        plt.colorbar()
 
     plt.show()
 
