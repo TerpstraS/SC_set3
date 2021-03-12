@@ -134,20 +134,20 @@ def main():
 
     print("Total time: {:.2f} seconds".format(time.time()-time_start))
 
-    # u = eig_vecs_square[0].reshape((N*L, N*L)).T
-    # labda = np.sqrt(eig_vals_square[0])
-    # fig, ax = plt.subplots()
-    # plt.xlabel("x")
-    # plt.ylabel("y")
-    # u_t = u * time_func(0, labda)
-    # ax.matshow(u_t, origin="lower")
-    #
-    # for t in np.arange(0, 0.5*np.pi, 0.01):
-    #     u_t = u * time_func(t, labda)
-    #     plt.cla()
-    #     ax.matshow(u_t, origin="lower")
-    #     plt.title("$t = {:.2f}$ seconds".format(t))
-    #     plt.pause(0.001)
+    u = eig_vecs_square[0].reshape((N*L, N*L)).T
+    labda = np.sqrt(eig_vals_square[0])
+    fig, ax = plt.subplots()
+    plt.xlabel("x")
+    plt.ylabel("y")
+    u_t = u * time_func(0, labda)
+    ax.matshow(u_t, origin="lower")
+
+    for t in np.arange(0, 0.5*np.pi, 0.01):
+        u_t = u * time_func(t, labda)
+        plt.cla()
+        ax.matshow(u_t, origin="lower")
+        plt.title("$t = {:.2f}$ seconds".format(t))
+        plt.pause(0.001)
 
     for i, eig_vec in enumerate(eig_vecs_square[:2]):
         plt.matshow(eig_vec.reshape((N*L, N*L)).T, origin="lower")
