@@ -75,6 +75,12 @@ def solve_eigen_problem(L, N_x, N_y, circular=False, sparse=True, k=6):
     eig_vals = eig_vals.real
     eig_vecs = eig_vecs.real.T
 
+    # sort eig_vals and eig_vecs in ascending order
+    if not sparse:
+        ids = np.flip(np.argsort(eig_vals))
+        eig_vals = eig_vals[ids]
+        eig_vecs = eig_vecs[ids]
+
     print("Eigenvalues found...\n")
 
     return eig_vals, eig_vecs
@@ -90,8 +96,8 @@ def main():
     time_start = time.time()
 
     L = 1
-    N = 30
-    sparse = True
+    N = 20
+    sparse = False
     k = 3
 
     N_x = N * L
@@ -105,19 +111,19 @@ def main():
 
     # animation
     ## TODO: add (fixed?) colorbar
-    u = eig_vecs_circle[0].reshape((N*L, N*L)).T
-    labda = np.sqrt(-eig_vals_circle[0])
-    fig, ax = plt.subplots()
-    plt.xlabel("x")
-    plt.ylabel("y")
-    u_t = u * time_func(0, labda)
-    ax.matshow(u_t, origin="lower")
-    for t in np.arange(0, 0.3*np.pi, 0.01):
-        u_t = u * time_func(t, labda)
-        plt.cla()
-        ax.matshow(u_t, origin="lower")
-        plt.title("$t = {:.2f}$ seconds".format(t))
-        plt.pause(0.001)
+    # u = eig_vecs_circle[0].reshape((N*L, N*L)).T
+    # labda = np.sqrt(-eig_vals_circle[0])
+    # fig, ax = plt.subplots()
+    # plt.xlabel("x")
+    # plt.ylabel("y")
+    # u_t = u * time_func(0, labda)
+    # ax.matshow(u_t, origin="lower")
+    # for t in np.arange(0, 0.3*np.pi, 0.01):
+    #     u_t = u * time_func(t, labda)
+    #     plt.cla()
+    #     ax.matshow(u_t, origin="lower")
+    #     plt.title("$t = {:.2f}$ seconds".format(t))
+    #     plt.pause(0.001)
 
 
     for i, eig_vec in enumerate(eig_vecs_square[:k]):
