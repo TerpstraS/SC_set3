@@ -96,9 +96,9 @@ def main():
     time_start = time.time()
 
     L = 1
-    N = 20
-    sparse = False
-    k = 3
+    N = 30
+    sparse = True
+    k = 2
 
     N_x = N * L
     N_y = N * L
