@@ -1,9 +1,10 @@
+from matplotlib import cm
+import matplotlib.animation as ani
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy.linalg as sp_lin
 import scipy.sparse.linalg as sp_lin_sparse
 import time
-
 
 def construct_M(L, N_x, N_y, circular=False):
     """ This is a function that makes the matrix of a rectangle. """
@@ -90,6 +91,32 @@ def time_func(t, labda):
     A, B = 1, 1
     return A * np.cos(labda*t) + B * np.sin(labda*t)
 
+def animate_wave_equation(u, labda):
+    u_t = u * time_func(0, labda)
+    X = np.arange(0, len(u_t))
+    Y = np.arange(0, len(u_t))
+    fig = plt.figure()
+    ax = fig.gca(projection='3d')
+    ax.set_zlim(-0.1, 0.1)
+    surf = ax.plot_surface(X, Y, u_t, cmap=cm.coolwarm,
+                       linewidth=0, antialiased=False)
+    # caxes = ax.matshow(u_t, origin='lower')
+
+    # initialization function: plot the background of each frame
+    def init():
+        line = ax.matshow([])
+        return line,
+   
+    def animate(t):
+        u_t = u * time_func(t, labda)
+        plt.cla()
+        ax.set_zlim(-0.1, 0.1)
+        surf = ax.plot_surface(X, Y, u_t, cmap=cm.coolwarm,
+                    linewidth=0, antialiased=False)
+        # return line,
+
+    animation = ani.FuncAnimation(fig, animate, frames=np.arange(0, 0.3*np.pi, 0.01), repeat=True, save_count=700)
+    return animation
 
 def main():
 
@@ -110,20 +137,15 @@ def main():
     print("Total time: {:.2f} seconds".format(time.time()-time_start))
 
     # animation
-    ## TODO: add (fixed?) colorbar
-    # u = eig_vecs_circle[0].reshape((N*L, N*L)).T
-    # labda = np.sqrt(-eig_vals_circle[0])
-    # fig, ax = plt.subplots()
-    # plt.xlabel("x")
-    # plt.ylabel("y")
-    # u_t = u * time_func(0, labda)
-    # ax.matshow(u_t, origin="lower")
-    # for t in np.arange(0, 0.3*np.pi, 0.01):
-    #     u_t = u * time_func(t, labda)
-    #     plt.cla()
-    #     ax.matshow(u_t, origin="lower")
-    #     plt.title("$t = {:.2f}$ seconds".format(t))
-    #     plt.pause(0.001)
+    u = eig_vecs_circle[0].reshape((N*L, N*L)).T
+    labda = np.sqrt(-eig_vals_circle[0])
+    
+    print('Animating')
+    
+    anim = animate_wave_equation(u, labda)
+    anim.save('animation.mp4')
+
+    print('Done animating')
 
 
     for i, eig_vec in enumerate(eig_vecs_square[:k]):
