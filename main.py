@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import scipy.linalg as sp_lin
 import scipy.sparse.linalg as sp_lin_sparse
+import scipy.sparse as sp_sparse
 import time
 
 def construct_M(L, N_x, N_y, circular=False, source=None):
@@ -141,7 +142,10 @@ def animate_wave_equation(u, labda):
 
 def diffusion():
 
-    N = 80
+    time_start = time.time()
+
+    sparse = True
+    N = 100
     r = 2
     x_source, y_source = r + 0.6, r + 1.2
     L = 4
@@ -154,7 +158,12 @@ def diffusion():
     b[x_grid_source, y_grid_source] = 1
     b = b.reshape(N * N)
 
-    c = sp_lin.solve(M, b)
+    if sparse:
+        c = sp_lin_sparse.spsolve(sp_sparse.csr_matrix(M), b)
+    else:
+        c = sp_lin.solve(M, b)
+
+    print("Total time: {:.2f} seconds".format(time.time()-time_start))
 
     plt.matshow(c.reshape((N, N)))
     plt.colorbar()
@@ -166,7 +175,7 @@ def diffusion():
 def main():
 
     diffusion()
-
+    return
     time_start = time.time()
 
     L = 1
