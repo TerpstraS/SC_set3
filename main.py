@@ -62,6 +62,8 @@ def construct_M(L, N_x, N_y, circular=False, source=None):
                     else:
                         M[i, j] = 1
 
+    M *= (1/(L/N_x)**2)
+
     if source:
 
         for i in range(len_M):
@@ -145,7 +147,7 @@ def diffusion():
     time_start = time.time()
 
     sparse = True
-    N = 100
+    N = 60
     r = 2
     x_source, y_source = r + 0.6, r + 1.2
     L = 4
@@ -175,7 +177,7 @@ def diffusion():
 def main():
 
     diffusion()
-    return
+
     time_start = time.time()
 
     L = 1
