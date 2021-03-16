@@ -6,7 +6,7 @@ import scipy.linalg as sp_lin
 import scipy.sparse.linalg as sp_lin_sparse
 import time
 
-def construct_M(L, N_x, N_y, circular=False):
+def construct_M(L, N_x, N_y, circular=False, source=None):
     """ This is a function that makes the matrix of a rectangle. """
 
     len_M = N_x * N_y
@@ -16,6 +16,7 @@ def construct_M(L, N_x, N_y, circular=False):
         assert N_x == N_y, "grid should be square for a circular domain"
 
         x_center, y_center = N_x / 2, N_y / 2
+
         r = N_x / 2
 
     # index in M of diagonals of 1. Large is the outer diagonal, small is the diagonal hugging
@@ -47,19 +48,38 @@ def construct_M(L, N_x, N_y, circular=False):
         for i in range(len_M):
 
             # true grid coordinates
-            x_grid = i % N_x
-            y_grid = i // N_x
+            x_grid = i // N_x
+            y_grid = i % N_x
 
             # check if grid point lays outside circle
             if np.sqrt((x_center - x_grid)**2 + (y_center - y_grid)**2) > r:
 
-                # set column to zerp (except for the diagonal)
+                # set column to zero (except for the diagonal)
                 for j in range(len_M):
                     if not i == j:
                         M[i, j] = 0
+                    else:
+                        M[i, j] = 1
+
+    if source:
+
+        for i in range(len_M):
+
+            # true grid coordinates
+            x_grid = i // N_x
+            y_grid = i % N_x
+            x_source, y_source = source
+            if x_grid == x_source and y_grid == y_source:
+
+                # set column to zero (except for the diagonal)
+                for j in range(len_M):
+                    if not i == j:
+                        M[i, j] = 0
+                    else:
+                        M[i, j] = 1
 
     # multiply M by dx
-    return M * (1/(L/N_x)**2)
+    return M
 
 
 def solve_eigen_problem(L, N_x, N_y, circular=False, sparse=True, k=6):
@@ -106,7 +126,7 @@ def animate_wave_equation(u, labda):
     def init():
         line = ax.matshow([])
         return line,
-   
+
     def animate(t):
         u_t = u * time_func(t, labda)
         plt.cla()
@@ -118,7 +138,34 @@ def animate_wave_equation(u, labda):
     animation = ani.FuncAnimation(fig, animate, frames=np.arange(0, 0.3*np.pi, 0.01), repeat=True, save_count=700)
     return animation
 
+
+def diffusion():
+
+    N = 80
+    r = 2
+    x_source, y_source = r + 0.6, r + 1.2
+    L = 4
+    x_grid_source = int((N / L) * x_source)
+    y_grid_source = int((N / L) * y_source)
+    M = construct_M(L, N, N, circular=True, source=(x_grid_source, y_grid_source))
+
+
+    b = np.zeros((N, N))
+    b[x_grid_source, y_grid_source] = 1
+    b = b.reshape(N * N)
+
+    c = sp_lin.solve(M, b)
+
+    plt.matshow(c.reshape((N, N)))
+    plt.colorbar()
+    plt.show()
+
+    return
+
+
 def main():
+
+    diffusion()
 
     time_start = time.time()
 
@@ -139,9 +186,9 @@ def main():
     # animation
     u = eig_vecs_circle[0].reshape((N*L, N*L)).T
     labda = np.sqrt(-eig_vals_circle[0])
-    
+
     print('Animating')
-    
+
     anim = animate_wave_equation(u, labda)
     anim.save('animation.mp4')
 
