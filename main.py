@@ -118,6 +118,7 @@ def animate_wave_equation(u, labda):
     u_t = u * time_func(0, labda)
     X = np.arange(0, len(u_t))
     Y = np.arange(0, len(u_t))
+    X, Y = np.meshgrid(X, Y)
     fig = plt.figure()
     ax = fig.gca(projection='3d')
     ax.set_zlim(-0.1, 0.1)
