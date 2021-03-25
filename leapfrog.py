@@ -4,12 +4,11 @@ import numba
 from scipy.integrate import solve_ivp
 
 
-def runge_kutta(k, time_total):
+def runge_kutta(k, time_total, dt):
     def harmonic_oscillator(t, z, k):
         x, v = z
         return [v, -k * x]
 
-    dt = 0.001
     sol = solve_ivp(harmonic_oscillator, [0, time_total], [1, 0], t_eval=np.linspace(0, time_total, int(time_total / dt)), args=(k, ), dense_output=True)
 
 
@@ -50,8 +49,7 @@ def leapfrog(time_total, dt, k, f_t=False, omega=0.01, m=1):
     return time_arr, x, v
 
 
-def leapfrog_hooke(k, time_total):
-    dt = 0.001
+def leapfrog_hooke(k, time_total, dt):
     m = 1
 
     time_arr, x, v = leapfrog(time_total, dt, k, f_t=False, m=m)
@@ -73,9 +71,8 @@ def leapfrog_hooke(k, time_total):
     # plt.savefig("./results/leapfrog/x_v_k{}.png".format(k))
 
 
-def leapfrog_sinusiodal(k, time_total):
+def leapfrog_sinusiodal(k, time_total, dt):
 
-    dt = 0.001
     m = 1
     omega = 0.2
 
@@ -104,13 +101,14 @@ def leapfrog_sinusiodal(k, time_total):
 
 def main():
 
+    dt = 0.001
     k = 0.01
     time_total = 100
-    leapfrog_hooke(k, time_total)
+    leapfrog_hooke(k, time_total, dt)
 
-    runge_kutta(k, time_total)
+    runge_kutta(k, time_total, dt)
 
-    leapfrog_sinusiodal(k, time_total)
+    leapfrog_sinusiodal(k, time_total, dt)
 
     plt.show()
 
