@@ -27,7 +27,7 @@ def runge_kutta(k, time_total, dt):
     ax2.tick_params(axis="y", labelcolor=color)
     fig.tight_layout()
 
-    return
+    return sol.t, sol.y[0], sol.y[1]
 
 
 @numba.njit
@@ -70,6 +70,7 @@ def leapfrog_hooke(k, time_total, dt):
     fig.tight_layout()
     # plt.savefig("./results/leapfrog/x_v_k{}.png".format(k))
 
+    return time_arr, x, v
 
 def leapfrog_sinusiodal(k, time_total, dt):
 
@@ -98,17 +99,20 @@ def leapfrog_sinusiodal(k, time_total, dt):
     fig.tight_layout()
     # plt.savefig("./results/leapfrog/sinusiodal_x_v_k{}.png".format(k))
 
+    return time_arr, x, v
 
 def main():
 
-    dt = 0.001
-    k = 0.01
-    time_total = 100
-    leapfrog_hooke(k, time_total, dt)
+    dt = 0.01
+    k = 0.001
+    time_total = 1000
+    time_arr, x_leapfrog, v_leapfrog = leapfrog_hooke(k, time_total, dt)
+    time_arr, x_rk45, v_rk45 = runge_kutta(k, time_total, dt)
+    print(x_leapfrog)
+    print(x_rk45)
+    print(np.sum(np.abs(x_leapfrog - x_rk45)))
 
-    runge_kutta(k, time_total, dt)
-
-    leapfrog_sinusiodal(k, time_total, dt)
+    # time_arr, x, v = leapfrog_sinusiodal(k, time_total, dt)
 
     plt.show()
 
