@@ -1,6 +1,36 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import numba
+from scipy.integrate import solve_ivp
+
+
+def runge_kutta():
+    def harmonic_oscillator(t, z, k):
+        x, v = z
+        return [v, -k * x]
+
+    k = 0.001
+    dt = 0.001
+    time_total = 5000
+    sol = solve_ivp(harmonic_oscillator, [0, time_total], [1, 0], t_eval=np.linspace(0, time_total, int(time_total / dt)), args=(k, ), dense_output=True)
+
+
+    plt.rcParams.update({"font.size": 14})
+    fig, ax1 = plt.subplots()
+    plt.title("RK45")
+    color = "black"
+    ax1.plot(sol.t, sol.y[0], color=color)
+    ax1.set_xlabel("time (s)")
+    ax1.set_ylabel("x (m)", color=color)
+    ax1.tick_params(axis="y", labelcolor=color)
+    ax2 = ax1.twinx()
+    color = "blue"
+    ax2.plot(sol.t, sol.y[1], color=color)
+    ax2.set_ylabel("v (m/s)", color=color)
+    ax2.tick_params(axis="y", labelcolor=color)
+    fig.tight_layout()
+
+    return
 
 
 @numba.njit
@@ -25,17 +55,14 @@ def leapfrog(time_total, dt, k, f_t=False, omega=0.01, m=1):
 def leapfrog_hooke():
     dt = 0.001
     m = 1
-    k = 0.05
-    time_total = 50
+    k = 0.001
+    time_total = 5000
 
     time_arr, x, v = leapfrog(time_total, dt, k, f_t=False, m=m)
 
-    plt.figure()
-    plt.plot(v, x)
-
     plt.rcParams.update({"font.size": 14})
     fig, ax1 = plt.subplots()
-    plt.title("Hooke")
+    plt.title("Leapfrog")
     color = "black"
     ax1.plot(time_arr, x, color=color)
     ax1.set_xlabel("time (s)")
@@ -54,14 +81,15 @@ def leapfrog_sinusiodal():
 
     dt = 0.001
     m = 1
-    k = 0.3
+    k = 0.1
     time_total = 100
-    omega = 0.1
+    omega = 0.2
 
     time_arr, x, v = leapfrog(time_total, dt, k, f_t=True, omega=omega, m=m)
     #
-    plt.figure()
-    plt.plot(v, x)
+    # plt.figure()
+    # plt.plot(v, x)
+    # plt.show()
 
     plt.rcParams.update({"font.size": 14})
     fig, ax1 = plt.subplots()
@@ -82,9 +110,11 @@ def leapfrog_sinusiodal():
 
 def main():
 
-    leapfrog_hooke()
+    # leapfrog_hooke()
+    runge_kutta()
+    # return
 
-    leapfrog_sinusiodal()
+    leapfrog_hooke()
 
     plt.show()
 
