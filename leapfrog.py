@@ -87,7 +87,7 @@ def leapfrog_sinusiodal(k, time_total):
 
     plt.rcParams.update({"font.size": 14})
     fig, ax1 = plt.subplots()
-    plt.title("Omega")
+    plt.title("Leapfrog sinusiodal force $\omega={}$".format(omega))
     color = "black"
     ax1.plot(time_arr, x, color=color)
     ax1.set_xlabel("time (s)")
@@ -104,6 +104,8 @@ def leapfrog_sinusiodal(k, time_total):
 
 def main():
 
+    k = 0.01
+    time_total = 100
     leapfrog_hooke(k, time_total)
 
     runge_kutta(k, time_total)
