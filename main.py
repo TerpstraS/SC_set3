@@ -6,6 +6,8 @@ import scipy.linalg as sp_lin
 import scipy.sparse.linalg as sp_lin_sparse
 import scipy.sparse as sp_sparse
 import time
+from mpl_toolkits.axes_grid1 import make_axes_locatable
+
 
 def construct_M(L, N_x, N_y, circular=False, source=None):
     """ This is a function that makes the matrix of a rectangle. """
@@ -148,7 +150,7 @@ def diffusion():
     time_start = time.time()
 
     sparse = True
-    N = 60
+    N = 100
     r = 2
     x_source, y_source = r + 0.6, r + 1.2
     L = 4
@@ -168,32 +170,75 @@ def diffusion():
 
     print("Total time: {:.2f} seconds".format(time.time()-time_start))
 
-    plt.matshow(c.reshape((N, N)))
+    plt.rcParams.update({"font.size": 14})
+    plt.matshow(c.reshape((N, N)).T, origin="lower", extent=[-2, 2, -2, 2])
+    plt.gca().xaxis.tick_bottom()
+    plt.xlabel("x")
+    plt.ylabel("y")
     plt.colorbar()
+    # plt.tight_layout()
+    plt.savefig("results/diffusion_N{}.png".format(N))
     plt.show()
 
     return
 
 
+def plot_drum(N_x, N_y, L, eig_vals, eig_vecs):
+
+    fig, axs = plt.subplots(2, 2, sharey=True, sharex=True)
+    plt.rcParams.update({"font.size": 14})
+    im = None
+    for i, ax in enumerate(axs.flatten()):
+        # plt.matshow(eig_vec.reshape((N*L, N*L)).T, origin="lower")
+        # plt.title("Square drum: eigenvalue {:.0f}".format(eig_vals_square[i]))
+        # plt.xlabel("x")
+        # plt.ylabel("y")
+        # plt.colorbar()
+        im = ax.matshow(eig_vecs[i*2].reshape((N_x*L, N_y*L)).T, origin="lower", extent=[0, L, 0, L])
+        ax.set_title("$\lambda = {:.2f}$".format(np.sqrt(-eig_vals[i*2])))
+        divider = make_axes_locatable(ax)
+        cax = divider.append_axes('right', size='10%', pad=0.1)
+        fig.colorbar(im, cax=cax, orientation="vertical")
+
+    # fig.colorbar(im, ax=axs.ravel().tolist())
+    axs[1, 0].xaxis.tick_bottom()
+    axs[1, 0].set_xlabel("x")
+    axs[1, 1].xaxis.tick_bottom()
+    axs[1, 1].set_xlabel("x")
+    axs[1, 0].yaxis.tick_left()
+    axs[1, 0].set_ylabel("y")
+    axs[0, 0].yaxis.tick_left()
+    axs[0, 0].set_ylabel("y")
+    fig.tight_layout(pad=0)
+    plt.savefig("results/drums_circle.png")
+
+    plt.show()
+
+
 def main():
 
-    diffusion()
+    # diffusion()
+    # return
 
     time_start = time.time()
 
     L = 1
-    N = 30
+    N = 100
     sparse = True
-    k = 2
+    k = 8
 
     N_x = N * L
     N_y = N * L
 
-    eig_vals_square, eig_vecs_square = solve_eigen_problem(L, N*L, N*L, sparse=sparse, k=k)
-    eig_vals_rect, eig_vecs_rect = solve_eigen_problem(L, N*L, N*2*L, sparse=sparse, k=k)
-    eig_vals_circle, eig_vecs_circle = solve_eigen_problem(L, N*L, N*L, sparse=sparse, circular=True, k=k)
+    # eig_vals_square, eig_vecs_square = solve_eigen_problem(L, N*L, N*L, sparse=sparse, k=k)
 
+
+    # eig_vals_rect, eig_vecs_rect = solve_eigen_problem(L, N*L, N*2*L, sparse=sparse, k=k)
+    eig_vals_circle, eig_vecs_circle = solve_eigen_problem(L, N*L, N*L, sparse=sparse, circular=True, k=k)
+    plot_drum(N*L, N*L, L, eig_vals_circle, eig_vecs_circle)
     print("Total time: {:.2f} seconds".format(time.time()-time_start))
+    return
+
 
     # animation
     u = eig_vecs_circle[0].reshape((N*L, N*L)).T
