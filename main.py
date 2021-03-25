@@ -102,10 +102,10 @@ def solve_eigen_problem(L, N_x, N_y, circular=False, sparse=True, k=6):
     eig_vecs = eig_vecs.real.T
 
     # sort eig_vals and eig_vecs in ascending order
-    if not sparse:
-        ids = np.flip(np.argsort(eig_vals))
-        eig_vals = eig_vals[ids]
-        eig_vecs = eig_vecs[ids]
+    # if not sparse:
+    ids = np.flip(np.argsort(eig_vals))
+    eig_vals = eig_vals[ids]
+    eig_vecs = eig_vecs[ids]
 
     print("Eigenvalues found...\n")
 
@@ -215,7 +215,83 @@ def plot_drum(N_x, N_y, L, eig_vals, eig_vecs):
     plt.show()
 
 
+def plot_eigenfrequencies():
+
+    N = 50
+    Ls = np.linspace(1, 5, 5, dtype=int)
+    k = 20
+
+    fig = plt.figure()
+    plt.rcParams.update({"font.size": 14})
+
+    for i, L in enumerate(Ls):
+        print("\nL: {} out of {}".format(L, Ls))
+        eig_vals, eig_vecs = solve_eigen_problem(L, N, N, sparse=True, circular=False, k=k)
+
+        plt.scatter(range(len(eig_vals)), np.sqrt(-eig_vals), label="$L={}$".format(L))
+
+    plt.xlabel("$i^{th}$ eigenvalue")
+    plt.ylabel("$\lambda$")
+    plt.legend()
+    from matplotlib.ticker import MaxNLocator
+    ax = fig.gca()
+    ax.xaxis.set_major_locator(MaxNLocator(integer=True))
+    plt.tight_layout()
+    plt.savefig("results/eig_freq_square.png")
+    plt.show()
+    return
+
+
+def speed_comparison_sparse(L):
+    k = 6
+    n_reps = 10
+    # Ns = np.linspace(10, 70, 7, dtype=int)
+    Ns = np.linspace(10, 70, 7, dtype=int)
+    times_sparse = np.zeros((len(Ns), n_reps))
+    times_normal = np.zeros((len(Ns), n_reps))
+    for i, N in enumerate(Ns):
+        print("\nN: {} out of {}".format(N, Ns))
+        for j in range(n_reps):
+            print("{} out of {}".format(j, n_reps))
+            time_start = time.process_time()
+            solve_eigen_problem(L, N*L, N*L, sparse=True, circular=False, k=k)
+            time_total = time.process_time() - time_start
+            times_sparse[i, j] = time_total
+
+            time_start = time.process_time()
+            solve_eigen_problem(L, N*L, N*L, sparse=False, circular=False, k=k)
+            time_total = time.process_time() - time_start
+            times_normal[i, j] = time_total
+
+    times_means_sparse = np.mean(times_sparse, axis=1)
+    times_stddev_sparse = np.std(times_sparse, axis=1, ddof=1)
+
+    times_means_normal = np.mean(times_normal, axis=1)
+    times_stddev_normal = np.std(times_normal, axis=1, ddof=1)
+
+
+    plt.figure()
+    plt.rcParams.update({"font.size": 14})
+    # plt.title("DLA simulation time over the lattice size $\eta={}$".format(eta))
+    plt.errorbar(Ns, times_means_sparse, yerr=times_stddev_sparse, markersize=10, color="orange", fmt="^", zorder=0, label="sparse")
+    plt.errorbar(Ns, times_means_normal, yerr=times_stddev_normal, markersize=10, color="blue", fmt="x", zorder=0, label="dense")
+    # plt.scatter(Ns, times_means, color="blue", s=15)
+    plt.xlabel("Lattice discretization $N$")
+    plt.ylabel("Time (s)")
+    plt.legend()
+    plt.tight_layout()
+    plt.savefig("results/speed_sparse.png")
+    plt.show()
+
+
+    return
+
+
 def main():
+
+    # plot_eigenfrequencies()
+    # return
+    # speed_comparison_sparse(1)
 
     # diffusion()
     # return
@@ -223,21 +299,21 @@ def main():
     time_start = time.time()
 
     L = 1
-    N = 100
+    N = 60
     sparse = True
     k = 8
 
     N_x = N * L
     N_y = N * L
 
-    # eig_vals_square, eig_vecs_square = solve_eigen_problem(L, N*L, N*L, sparse=sparse, k=k)
+    eig_vals_square, eig_vecs_square = solve_eigen_problem(L, N*L, N*L, sparse=sparse, k=k)
 
+    print("Total time: {:.2f} seconds".format(time.time()-time_start))
+    return
 
     # eig_vals_rect, eig_vecs_rect = solve_eigen_problem(L, N*L, N*2*L, sparse=sparse, k=k)
     eig_vals_circle, eig_vecs_circle = solve_eigen_problem(L, N*L, N*L, sparse=sparse, circular=True, k=k)
     plot_drum(N*L, N*L, L, eig_vals_circle, eig_vecs_circle)
-    print("Total time: {:.2f} seconds".format(time.time()-time_start))
-    return
 
 
     # animation
