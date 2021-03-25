@@ -245,8 +245,8 @@ def plot_eigenfrequencies():
 def speed_comparison_sparse(L):
     k = 6
     n_reps = 10
-    # Ns = np.linspace(10, 70, 7, dtype=int)
     Ns = np.linspace(10, 70, 7, dtype=int)
+    # Ns = np.linspace(10, 20, 2, dtype=int)
     times_sparse = np.zeros((len(Ns), n_reps))
     times_normal = np.zeros((len(Ns), n_reps))
     for i, N in enumerate(Ns):
@@ -273,12 +273,12 @@ def speed_comparison_sparse(L):
     plt.figure()
     plt.rcParams.update({"font.size": 14})
     # plt.title("DLA simulation time over the lattice size $\eta={}$".format(eta))
-    plt.errorbar(Ns, times_means_sparse, yerr=times_stddev_sparse, markersize=10, color="orange", fmt="^", zorder=0, label="sparse")
-    plt.errorbar(Ns, times_means_normal, yerr=times_stddev_normal, markersize=10, color="blue", fmt="x", zorder=0, label="dense")
+    plt.errorbar(Ns, times_means_sparse, yerr=times_stddev_sparse, markersize=10, color="orange", fmt="^", zorder=0, label="sparse solver")
+    plt.errorbar(Ns, times_means_normal, yerr=times_stddev_normal, markersize=10, color="blue", fmt="x", zorder=0, label="standard solver")
     # plt.scatter(Ns, times_means, color="blue", s=15)
     plt.xlabel("Lattice discretization $N$")
     plt.ylabel("Time (s)")
-    plt.legend()
+    plt.legend(loc="upper left")
     plt.tight_layout()
     plt.savefig("results/speed_sparse.png")
     plt.show()
@@ -290,8 +290,8 @@ def speed_comparison_sparse(L):
 def main():
 
     # plot_eigenfrequencies()
-    # return
-    # speed_comparison_sparse(1)
+    speed_comparison_sparse(1)
+    return
 
     # diffusion()
     # return

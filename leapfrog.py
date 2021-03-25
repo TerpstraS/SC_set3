@@ -1,6 +1,33 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import numba
+from scipy.integrate import solve_ivp
+
+
+def runge_kutta(k, time_total, dt):
+    def harmonic_oscillator(t, z, k):
+        x, v = z
+        return [v, -k * x]
+
+    sol = solve_ivp(harmonic_oscillator, [0, time_total], [1, 0], t_eval=np.linspace(0, time_total, int(time_total / dt)), args=(k, ), dense_output=True)
+
+
+    plt.rcParams.update({"font.size": 14})
+    fig, ax1 = plt.subplots()
+    plt.title("RK45")
+    color = "black"
+    ax1.plot(sol.t, sol.y[0], color=color)
+    ax1.set_xlabel("time (s)")
+    ax1.set_ylabel("x (m)", color=color)
+    ax1.tick_params(axis="y", labelcolor=color)
+    ax2 = ax1.twinx()
+    color = "blue"
+    ax2.plot(sol.t, sol.y[1], color=color)
+    ax2.set_ylabel("v (m/s)", color=color)
+    ax2.tick_params(axis="y", labelcolor=color)
+    fig.tight_layout()
+
+    return sol.t, sol.y[0], sol.y[1]
 
 
 @numba.njit
@@ -22,20 +49,14 @@ def leapfrog(time_total, dt, k, f_t=False, omega=0.01, m=1):
     return time_arr, x, v
 
 
-def leapfrog_hooke():
-    dt = 0.001
+def leapfrog_hooke(k, time_total, dt):
     m = 1
-    k = 0.05
-    time_total = 50
 
     time_arr, x, v = leapfrog(time_total, dt, k, f_t=False, m=m)
 
-    plt.figure()
-    plt.plot(v, x)
-
     plt.rcParams.update({"font.size": 14})
     fig, ax1 = plt.subplots()
-    plt.title("Hooke")
+    plt.title("Leapfrog")
     color = "black"
     ax1.plot(time_arr, x, color=color)
     ax1.set_xlabel("time (s)")
@@ -49,23 +70,22 @@ def leapfrog_hooke():
     fig.tight_layout()
     # plt.savefig("./results/leapfrog/x_v_k{}.png".format(k))
 
+    return time_arr, x, v
 
-def leapfrog_sinusiodal():
+def leapfrog_sinusiodal(k, time_total, dt):
 
-    dt = 0.001
     m = 1
-    k = 0.3
-    time_total = 100
-    omega = 0.1
+    omega = 0.2
 
     time_arr, x, v = leapfrog(time_total, dt, k, f_t=True, omega=omega, m=m)
     #
-    plt.figure()
-    plt.plot(v, x)
+    # plt.figure()
+    # plt.plot(v, x)
+    # plt.show()
 
     plt.rcParams.update({"font.size": 14})
     fig, ax1 = plt.subplots()
-    plt.title("Omega")
+    plt.title("Leapfrog sinusiodal force $\omega={}$".format(omega))
     color = "black"
     ax1.plot(time_arr, x, color=color)
     ax1.set_xlabel("time (s)")
@@ -79,12 +99,20 @@ def leapfrog_sinusiodal():
     fig.tight_layout()
     # plt.savefig("./results/leapfrog/sinusiodal_x_v_k{}.png".format(k))
 
+    return time_arr, x, v
 
 def main():
 
-    leapfrog_hooke()
+    dt = 0.01
+    k = 0.001
+    time_total = 1000
+    time_arr, x_leapfrog, v_leapfrog = leapfrog_hooke(k, time_total, dt)
+    time_arr, x_rk45, v_rk45 = runge_kutta(k, time_total, dt)
+    print(x_leapfrog)
+    print(x_rk45)
+    print(np.sum(np.abs(x_leapfrog - x_rk45)))
 
-    leapfrog_sinusiodal()
+    # time_arr, x, v = leapfrog_sinusiodal(k, time_total, dt)
 
     plt.show()
 
