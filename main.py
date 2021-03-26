@@ -369,10 +369,10 @@ def speed_comparison_sparse(L):
 
 def main():
 
-    # plot_eigenfrequencies()
-    # speed_comparison_sparse(1)
-    # speed_comparison_sparse_diffusion()
-    # diffusion()
+    plot_eigenfrequencies()
+    speed_comparison_sparse(1)
+    speed_comparison_sparse_diffusion()
+    diffusion()
 
     time_start = time.time()
 
@@ -385,9 +385,9 @@ def main():
     N_y = N * L
 
     eig_vals_square, eig_vecs_square = solve_eigen_problem(L, N*L, N*L, sparse=sparse, k=k)
-    # eig_vals_rect, eig_vecs_rect = solve_eigen_problem(L, N*L, N*2*L, sparse=sparse, k=k)
-    # eig_vals_circle, eig_vecs_circle = solve_eigen_problem(L, N*L, N*L, sparse=sparse, circular=True, k=k)
-    # plot_drum(N*L, N*L, L, eig_vals_circle, eig_vecs_circle)
+    eig_vals_rect, eig_vecs_rect = solve_eigen_problem(L, N*L, N*2*L, sparse=sparse, k=k)
+    eig_vals_circle, eig_vecs_circle = solve_eigen_problem(L, N*L, N*L, sparse=sparse, circular=True, k=k)
+    plot_drum(N*L, N*L, L, eig_vals_circle, eig_vecs_circle)
 
     # animation
     eig_val_n = 6
@@ -400,8 +400,6 @@ def main():
     anim.save('anim_circle_drum_{}th_eigenvalue.mp4'.format(eig_val_n))
 
     print('Done animating')
-
-    return
 
 
     for i, eig_vec in enumerate(eig_vecs_square[:k]):

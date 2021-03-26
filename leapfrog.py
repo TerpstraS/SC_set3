@@ -118,11 +118,8 @@ def main():
     dt = 0.01
     k = 2
     time_total = 25
-    # time_arr, x_leapfrog, v_leapfrog = leapfrog_hooke(k, time_total, dt)
-    # time_arr, x_rk45, v_rk45 = runge_kutta(k, time_total, dt)
-    # # print(x_leapfrog)
-    # # print(x_rk45)
-    # print(np.sum((x_leapfrog - x_rk45)))
+    time_arr, x_leapfrog, v_leapfrog = leapfrog_hooke(k, time_total, dt)
+    time_arr, x_rk45, v_rk45 = runge_kutta(k, time_total, dt)
 
     omega = 2.5
     time_arr, x, v = leapfrog_sinusiodal(k, omega, time_total, dt)
