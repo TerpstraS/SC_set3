@@ -57,7 +57,7 @@ def construct_M(L, N_x, N_y, circular=False, source=None):
             # check if grid point lays outside circle
             if np.sqrt((x_center - x_grid)**2 + (y_center - y_grid)**2) > r:
 
-                # set column to zero (except for the diagonal)
+                # set row to zero (except for the diagonal)
                 for j in range(len_M):
                     if not i == j:
                         M[i, j] = 0
@@ -116,14 +116,22 @@ def time_func(t, labda):
     A, B = 1, 1
     return A * np.cos(labda*t) + B * np.sin(labda*t)
 
+
 def animate_wave_equation(u, labda):
+    # max = np.abs(200 * np.max(u))
+    max = 0.025
+    print(max)
     u_t = u * time_func(0, labda)
     X = np.arange(0, len(u_t))
     Y = np.arange(0, len(u_t))
     X, Y = np.meshgrid(X, Y)
     fig = plt.figure()
     ax = fig.gca(projection='3d')
-    ax.set_zlim(-0.1, 0.1)
+    ax.set_title("Square drum, $\lambda={:.2f}$".format(labda))
+    ax.set_zlim(-max, max)
+    ax.set_xlabel("x discrete")
+    ax.set_ylabel("y discrete")
+    ax.set_zlabel("amplitude")
     surf = ax.plot_surface(X, Y, u_t, cmap=cm.coolwarm,
                        linewidth=0, antialiased=False)
     # caxes = ax.matshow(u_t, origin='lower')
@@ -136,13 +144,76 @@ def animate_wave_equation(u, labda):
     def animate(t):
         u_t = u * time_func(t, labda)
         plt.cla()
-        ax.set_zlim(-0.1, 0.1)
+        ax.set_title("Square drum, $\lambda={}$".format(labda))
+        ax.set_zlim(-max, max)
+        ax.set_xlabel("x discrete")
+        ax.set_ylabel("y discrete")
+        ax.set_zlabel("amplitude")
         surf = ax.plot_surface(X, Y, u_t, cmap=cm.coolwarm,
                     linewidth=0, antialiased=False)
         # return line,
 
     animation = ani.FuncAnimation(fig, animate, frames=np.arange(0, 0.3*np.pi, 0.01), repeat=True, save_count=700)
     return animation
+
+
+def speed_comparison_sparse_diffusion():
+
+    r = 2
+    x_source, y_source = r + 0.6, r + 1.2
+    L = 4
+
+    n_reps = 10
+    Ns = np.linspace(10, 100, 10, dtype=int)
+    # Ns = np.linspace(10, 40, 3, dtype=int)
+    times_sparse = np.zeros((len(Ns), n_reps))
+    times_normal = np.zeros((len(Ns), n_reps))
+    for i, N in enumerate(Ns):
+        x_grid_source = int((N / L) * x_source)
+        y_grid_source = int((N / L) * y_source)
+
+        M = construct_M(L, N, N, circular=True, source=(x_grid_source, y_grid_source))
+
+        b = np.zeros((N, N))
+        b[x_grid_source, y_grid_source] = 1
+        b = b.reshape(N * N)
+        print("\nN: {} out of {}".format(N, Ns))
+        for j in range(n_reps):
+            print("{} out of {}".format(j, n_reps))
+            time_start = time.process_time()
+            sp_lin_sparse.spsolve(sp_sparse.csr_matrix(M), b)
+            time_total = time.process_time() - time_start
+            times_sparse[i, j] = time_total
+
+            time_start = time.process_time()
+            sp_lin.solve(M, b)
+            time_total = time.process_time() - time_start
+            times_normal[i, j] = time_total
+
+    times_means_sparse = np.mean(times_sparse, axis=1)
+    times_stddev_sparse = np.std(times_sparse, axis=1, ddof=1)
+
+    times_means_normal = np.mean(times_normal, axis=1)
+    times_stddev_normal = np.std(times_normal, axis=1, ddof=1)
+
+
+    fig = plt.figure()
+    plt.rcParams.update({"font.size": 14})
+    # plt.title("DLA simulation time over the lattice size $\eta={}$".format(eta))
+    plt.errorbar(Ns, times_means_sparse, yerr=times_stddev_sparse, markersize=10, color="orange", fmt="^", zorder=0, label="sparse solver")
+    plt.errorbar(Ns, times_means_normal, yerr=times_stddev_normal, markersize=10, color="blue", fmt="x", zorder=0, label="standard solver")
+    # plt.scatter(Ns, times_means, color="blue", s=15)
+    plt.xlabel("Lattice discretization $N$")
+    plt.ylabel("Time (s)")
+    ax = fig.gca()
+    ax.set_yscale("log")
+    plt.legend(loc="upper left")
+    plt.tight_layout()
+    plt.savefig("results/speed_sparse_diffusion_log.png")
+    plt.show()
+
+
+    return
 
 
 def diffusion():
@@ -177,9 +248,18 @@ def diffusion():
     plt.ylabel("y")
     plt.colorbar()
     # plt.tight_layout()
-    plt.savefig("results/diffusion_N{}.png".format(N))
-    plt.show()
+    # plt.savefig("results/diffusion_N{}.png".format(N))
+    # plt.show()
 
+    plt.figure()
+    plt.plot(np.linspace(-2, 2, N), c.reshape((N, N))[x_grid_source, :], label="$x=0.6$")
+    plt.plot(np.linspace(-2, 2, N), c.reshape((N, N))[:, y_grid_source], label="$y=1.2$")
+    plt.xlabel("position")
+    plt.ylabel("concentration")
+    plt.legend()
+    plt.tight_layout()
+    plt.savefig("results/diffusion_N{}_intersection.png".format(N))
+    plt.show()
     return
 
 
@@ -219,7 +299,7 @@ def plot_eigenfrequencies():
 
     N = 50
     Ls = np.linspace(1, 5, 5, dtype=int)
-    k = 20
+    k = 40
 
     fig = plt.figure()
     plt.rcParams.update({"font.size": 14})
@@ -237,7 +317,7 @@ def plot_eigenfrequencies():
     ax = fig.gca()
     ax.xaxis.set_major_locator(MaxNLocator(integer=True))
     plt.tight_layout()
-    plt.savefig("results/eig_freq_square.png")
+    plt.savefig("results/eig_freq_square_N50.png")
     plt.show()
     return
 
@@ -290,42 +370,38 @@ def speed_comparison_sparse(L):
 def main():
 
     # plot_eigenfrequencies()
-    speed_comparison_sparse(1)
-    return
-
+    # speed_comparison_sparse(1)
+    # speed_comparison_sparse_diffusion()
     # diffusion()
-    # return
 
     time_start = time.time()
 
     L = 1
-    N = 60
+    N = 100
     sparse = True
-    k = 8
+    k = 7
 
     N_x = N * L
     N_y = N * L
 
     eig_vals_square, eig_vecs_square = solve_eigen_problem(L, N*L, N*L, sparse=sparse, k=k)
-
-    print("Total time: {:.2f} seconds".format(time.time()-time_start))
-    return
-
     # eig_vals_rect, eig_vecs_rect = solve_eigen_problem(L, N*L, N*2*L, sparse=sparse, k=k)
-    eig_vals_circle, eig_vecs_circle = solve_eigen_problem(L, N*L, N*L, sparse=sparse, circular=True, k=k)
-    plot_drum(N*L, N*L, L, eig_vals_circle, eig_vecs_circle)
-
+    # eig_vals_circle, eig_vecs_circle = solve_eigen_problem(L, N*L, N*L, sparse=sparse, circular=True, k=k)
+    # plot_drum(N*L, N*L, L, eig_vals_circle, eig_vecs_circle)
 
     # animation
-    u = eig_vecs_circle[0].reshape((N*L, N*L)).T
-    labda = np.sqrt(-eig_vals_circle[0])
+    eig_val_n = 6
+    u = eig_vecs_square[eig_val_n].reshape((N*L, N*L)).T
+    labda = np.sqrt(-eig_vals_square[0])
 
     print('Animating')
 
     anim = animate_wave_equation(u, labda)
-    anim.save('animation.mp4')
+    anim.save('anim_circle_drum_{}th_eigenvalue.mp4'.format(eig_val_n))
 
     print('Done animating')
+
+    return
 
 
     for i, eig_vec in enumerate(eig_vecs_square[:k]):
@@ -351,6 +427,7 @@ def main():
 
     plt.show()
 
+    print("Total time: {:.2f} seconds".format(time.time()-time_start))
     return
 
 
